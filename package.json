@@ -2,7 +2,7 @@
   "name": "freelint",
   "displayName": "Freelint",
   "description": "ESLint functionality without requiring local installation",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "Zach Tatman",
   "engines": {
     "vscode": "^1.80.0"
@@ -34,6 +34,10 @@
       {
         "command": "freelint.createTestFile",
         "title": "FreeLint: Create Test JSX File"
+      },
+      {
+        "command": "freelint.toggle",
+        "title": "FreeLint: Toggle On/Off"
       }
     ],
     "configuration": {

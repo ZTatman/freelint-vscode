@@ -10,6 +10,7 @@ import { Linter, createLinter } from "./linter";
 // const eslintPluginReactHooks = require('eslint-plugin-react-hooks');
 
 let linter: Linter;
+let statusBarItem: vscode.StatusBarItem;
 
 export function activate(context: vscode.ExtensionContext) {
   vscode.window.showInformationMessage("Freelint Extension Activated!");
@@ -79,6 +80,27 @@ export function activate(context: vscode.ExtensionContext) {
       }
     );
 
+    // Register a command to toggle FreeLint on/off
+    const toggleCommand = vscode.commands.registerCommand(
+      "freelint.toggle",
+      async () => {
+        const isEnabled = linter.toggle();
+        updateStatusBar(isEnabled);
+        if (isEnabled) {
+          logger.info("FreeLint enabled", true);
+          vscode.window.showInformationMessage("FreeLint enabled");
+          
+          // Re-lint the active document
+          if (vscode.window.activeTextEditor) {
+            await linter.lintDocument(vscode.window.activeTextEditor.document);
+          }
+        } else {
+          logger.info("FreeLint disabled - diagnostics cleared", true);
+          vscode.window.showInformationMessage("FreeLint disabled");
+        }
+      }
+    );
+
     // Sets up automatic linting on file save
     const saveListener = vscode.workspace.onDidSaveTextDocument(
       async (document) => {
@@ -110,17 +132,33 @@ export function activate(context: vscode.ExtensionContext) {
       lintCommand, 
       debugCommand,
       createTestCommand,
+      toggleCommand,
       saveListener, 
       openListener,
-      activeEditorListener
+      activeEditorListener,
+      statusBarItem
     );
+
+    // Create and initialize status bar item
+    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarItem.command = "freelint.toggle";
+    updateStatusBar(true); // Initial state is enabled
+    statusBarItem.show();
   } catch (error) {
     vscode.window.showErrorMessage(`Failed to initialize linter: ${error}`);
     logger.error(`Initialization error: ${error}`);
   }
 }
 
+function updateStatusBar(enabled: boolean): void {
+  statusBarItem.text = enabled ? "$(check) FreeLint" : "$(x) FreeLint";
+  statusBarItem.tooltip = enabled ? "FreeLint enabled - Click to disable" : "FreeLint disabled - Click to enable";
+}
+
 export function deactivate() {
+  if (statusBarItem) {
+    statusBarItem.dispose();
+  }
   if (linter) {
     linter.dispose();
   }

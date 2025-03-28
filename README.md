@@ -8,6 +8,7 @@ FreeLint is a Visual Studio Code extension that provides ESLint functionality wi
 - **Real-time Linting**: Automatically lints your files when you open or save them
 - **React Support**: Built-in linting for React and React Hooks
 - **Immediate Feedback**: Shows linting errors and warnings directly in your editor
+- **Toggleable**: Easily enable or disable linting with a single click
 - **Cross-platform**: Works on Windows, macOS, and Linux
 
 ## Getting Started
@@ -23,6 +24,14 @@ FreeLint provides the following commands (accessible via the Command Palette - `
 - **Lint Current File with FreeLint**: Manually trigger linting for the current file
 - **FreeLint: Debug Log Current File**: Show detailed linting information for debugging purposes
 - **FreeLint: Create Test JSX File**: Create a sample JSX file with common linting issues for testing
+- **FreeLint: Toggle On/Off**: Enable or disable FreeLint functionality
+
+## Status Bar Integration
+
+FreeLint provides a status bar indicator that shows whether linting is currently enabled. You can click this indicator to quickly toggle FreeLint on or off without having to use the command palette.
+
+- **$(check) FreeLint**: Indicates that FreeLint is enabled
+- **$(x) FreeLint**: Indicates that FreeLint is disabled
 
 ## Default Rules
 

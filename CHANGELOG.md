@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.3] - 2023-08-30
+
+### Added
+
+- Toggle command to enable/disable FreeLint functionality
+- Status bar indicator showing FreeLint's current state
+- Quick toggle by clicking the status bar item
+
 ## [0.0.2] - 2023-08-25
 
 ### Added

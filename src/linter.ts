@@ -9,6 +9,7 @@ import { logger } from "./logger";
 export class Linter {
   private eslint: ESLint;
   private diagnosticCollection: vscode.DiagnosticCollection;
+  private enabled: boolean = true;
 
   constructor(extensionPath: string) {
     // Initialize ESLint with a basic configuration
@@ -73,6 +74,11 @@ export class Linter {
    */
   public async lintDocument(document: vscode.TextDocument): Promise<void> {
     try {
+      // Skip linting if disabled
+      if (!this.enabled) {
+        return;
+      }
+
       // Only lint JavaScript/JSX files
       const validExtensions = [".js", ".jsx", ".ts", ".tsx"];
       const fileExtension = path.extname(document.fileName);
@@ -248,6 +254,28 @@ export default HooksComponent;
    */
   public dispose(): void {
     this.diagnosticCollection.dispose();
+  }
+
+  /**
+   * Toggle the linter on or off
+   * @returns The new state (true = enabled, false = disabled)
+   */
+  public toggle(): boolean {
+    this.enabled = !this.enabled;
+
+    if (!this.enabled) {
+      // Clear all diagnostics when disabled
+      this.diagnosticCollection.clear();
+    }
+
+    return this.enabled;
+  }
+
+  /**
+   * Check if the linter is currently enabled
+   */
+  public isEnabled(): boolean {
+    return this.enabled;
   }
 }
 
