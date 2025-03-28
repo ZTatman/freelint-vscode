@@ -1,60 +1,76 @@
-# Freelint VS Code Extension
+# FreeLint
 
-Freelint provides ESLint functionality within VS Code without requiring local installation of ESLint and its plugins. This extension is particularly useful for remote SSH environments, where installing and configuring ESLint locally might be challenging.
+FreeLint is a Visual Studio Code extension that provides ESLint functionality without requiring local installation. It embeds ESLint and common plugins directly in the extension, allowing you to lint your JavaScript, JSX, TypeScript, and TSX files effortlessly, regardless of your project's setup.
 
 ## Features
 
-- Built-in ESLint that works without local ESLint installation
-- Supports JavaScript, React, JSX, and TypeScript files
-- Automatically lints files on save
-- Shows linting errors and warnings in VS Code Problems panel
-- Bundled with popular ESLint plugins:
-  - TypeScript support (`@typescript-eslint/parser` and `@typescript-eslint/eslint-plugin`)
-  - React and React Hooks (`eslint-plugin-react` and `eslint-plugin-react-hooks`)
-  - Import validation (`eslint-plugin-import`)
-  - Prettier integration (`eslint-plugin-prettier` and `prettier`)
+- **Zero Configuration**: Works out of the box with sensible defaults
+- **Real-time Linting**: Automatically lints your files when you open or save them
+- **React Support**: Built-in linting for React and React Hooks
+- **Immediate Feedback**: Shows linting errors and warnings directly in your editor
+- **Cross-platform**: Works on Windows, macOS, and Linux
+
+## Getting Started
+
+1. Install the FreeLint extension from the Visual Studio Code Marketplace
+2. Open a JavaScript or React project
+3. Start coding - FreeLint will automatically lint your JS/TS files
 
 ## Commands
 
-The extension provides the following commands:
+FreeLint provides the following commands (accessible via the Command Palette - `Ctrl+Shift+P` or `Cmd+Shift+P`):
 
-- **Lint Current File with FreeLint** (`freelint.lintFile`): Manually lint the currently open file
+- **Lint Current File with FreeLint**: Manually trigger linting for the current file
+- **FreeLint: Debug Log Current File**: Show detailed linting information for debugging purposes
+- **FreeLint: Create Test JSX File**: Create a sample JSX file with common linting issues for testing
 
-You can access this command through the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P` on macOS) by typing "Lint Current File with FreeLint".
+## Default Rules
 
-## Configuration
+FreeLint comes with a predefined set of rules optimized for modern JavaScript and React development, including:
 
-Freelint can be configured through VS Code settings:
+- React and React Hooks best practices
+- Consistent code style (semicolons, quotes)
+- Console usage warnings
+- Unused variable detection
+- And more!
 
-```json
-{
-  "freelint.enabledPlugins": ["react", "react-hooks", "import", "prettier"]
-}
-```
+## Extension Settings
 
-### Available Plugins
+This extension contributes the following settings:
 
-The following plugins can be enabled or disabled through the `freelint.enabledPlugins` setting:
-
-- `react` - Enables React-specific rules (from eslint-plugin-react)
-- `react-hooks` - Enables rules for React Hooks (from eslint-plugin-react-hooks)
-- `import` - Enables rules for import/export syntax (from eslint-plugin-import)
-- `prettier` - Enables integration with Prettier formatter (from eslint-plugin-prettier)
-
-By default, only the `react` and `react-hooks` plugins are enabled.
-
-You can customize these settings in your VS Code settings.json file or through the Settings UI:
-
-1. Go to File > Preferences > Settings
-2. Search for "freelint"
-3. Edit the "Freelint: Enabled Plugins" setting
+- `freelint.enabledPlugins`: Enable or disable specific ESLint plugins (default: ["react", "react-hooks"])
 
 ## Installation
 
-1. Download the `.vsix` file from the releases
-2. Open VS Code
-3. Go to the Extensions view (`Ctrl+Shift+X` or `Cmd+Shift+X` on macOS)
-4. Click on the "..." menu in the top-right of the Extensions view
-5. Select "Install from VSIX..." and choose the downloaded file
+You can install this extension through the VS Code Marketplace:
 
-Alternatively, you can install it using the command line:
+1. Open VS Code
+2. Go to Extensions view (Ctrl+Shift+X or Cmd+Shift+X on macOS)
+3. Search for "FreeLint"
+4. Click Install
+
+Alternatively, you can download the VSIX file from the releases page and install it manually:
+
+```
+code --install-extension freelint-0.0.2.vsix
+```
+
+## Troubleshooting
+
+If you encounter any issues with FreeLint:
+
+1. Try the "FreeLint: Debug Log Current File" command to see detailed linting information
+2. Check the "FreeLint" output channel in the Output panel for error messages
+3. If issues persist, please file a bug report on our GitHub repository
+
+## Release Notes
+
+See the [CHANGELOG.md](CHANGELOG.md) for details about each release.
+
+## License
+
+This extension is licensed under the MIT License.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
