@@ -17,8 +17,12 @@ export class Linter {
       cwd: extensionPath,
       useEslintrc: false,
       baseConfig: {
-        plugins: ["react", "react-hooks"],
-        extends: ["eslint:recommended", "plugin:react/recommended"],
+        plugins: ["react", "react-hooks", "import"],
+        extends: [
+          "eslint:recommended",
+          "plugin:react/recommended",
+          "plugin:import/recommended",
+        ],
         env: {
           browser: true,
           es2021: true,
@@ -33,13 +37,21 @@ export class Linter {
         },
         rules: {
           "react/react-in-jsx-scope": "off",
-          semi: ["error", "always"],
+          // General rules
+          // Most of these rules are already included in eslint:recommended
+          // Only include rules that differ from defaults or need specific configuration
           "no-console": "warn",
-          "no-unused-vars": "error",
           quotes: ["warn", "single", { avoidEscape: true }],
+          // React rules
           "react/jsx-pascal-case": "error",
           "react-hooks/rules-of-hooks": "error",
           "react-hooks/exhaustive-deps": "warn",
+          // Import rules
+          "import/no-unresolved": "error",
+          "import/named": "error",
+          "import/default": "error",
+          "import/namespace": "error",
+          "import/no-absolute-path": "error",
         },
         settings: {
           react: {
@@ -127,7 +139,7 @@ export class Linter {
             );
 
             if (message.ruleId) {
-              diagnostic.source = `freelint (${message.ruleId})`;
+              diagnostic.source = `freelint(${message.ruleId})`;
             }
 
             if (message.severity === 2) {
@@ -156,96 +168,6 @@ export class Linter {
     } catch (error) {
       logger.error(`Unexpected error in lintDocument: ${error}`);
       vscode.window.showErrorMessage(`Linting failed: ${error}`);
-    }
-  }
-
-  /**
-   * Create a test file with various lint issues.
-   * @param workspaceFolder The workspace folder to create the file in
-   */
-  public async createTestFile(
-    workspaceFolder: vscode.WorkspaceFolder
-  ): Promise<void> {
-    const testFilePath = path.join(
-      workspaceFolder.uri.fsPath,
-      "test-eslint.jsx"
-    );
-    const testContent = `
-import React, { useState, useEffect, useCallback } from 'react';
-
-// Missing semicolons
-var unused = "this variable is never used"
-const badQuotes = "mixing quote styles"
-
-// No-console violation
-console.log("This will trigger a no-console warning");
-
-// Extra semicolons
-const extraSemi = 5;;
-
-// Simple component with hooks violations
-function HooksComponent() {
-  // This is fine
-  const [count, setCount] = useState(0);
-  
-  // Rules of hooks violation - conditional hook
-  if (count > 0) {
-    // Error: React Hook "useState" is called conditionally
-    const [error, setError] = useState(null);
-  }
-  
-  // Exhaustive deps warning - missing dependency
-  useEffect(() => {
-    // Warning: React Hook useEffect has a missing dependency: 'count'
-    console.log('Count changed to', count);
-    // Should include count in the dependency array
-  }, []);
-  
-  // Conditionally defined callback - violates rules of hooks
-  let handleClick;
-  if (count > 10) {
-    // Error: React Hook "useCallback" is called conditionally
-    handleClick = useCallback(() => {
-      setCount(count + 1);
-    }, [count]);
-  }
-  
-  return (
-    <div>
-      <h1>Count: {count}</h1>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-    </div>
-  );
-}
-
-export default HooksComponent;
-`;
-
-    try {
-      // Create a URI for the test file
-      const uri = vscode.Uri.file(testFilePath);
-
-      // Write the test content to the file
-      await vscode.workspace.fs.writeFile(
-        uri,
-        Buffer.from(testContent, "utf8")
-      );
-
-      // Open the file
-      const document = await vscode.workspace.openTextDocument(uri);
-      await vscode.window.showTextDocument(document);
-
-      // Trigger linting
-      await this.lintDocument(document);
-
-      // Show a message in the output channel
-      logger.info(`Created test file: ${path.basename(testFilePath)}`, true);
-      vscode.window.showInformationMessage(
-        "Test file created with lint issues. Check 'FreeLint' output for details."
-      );
-    } catch (error) {
-      logger.error(`Error creating test file: ${error}`);
-      vscode.window.showErrorMessage(`Failed to create test file: ${error}`);
     }
   }
 

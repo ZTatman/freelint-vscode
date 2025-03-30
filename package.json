@@ -25,15 +25,23 @@
     "commands": [
       {
         "command": "freelint.lintFile",
-        "title": "Lint Current File with FreeLint"
+        "title": "FreeLint: Lint Current File"
       },
       {
         "command": "freelint.debugLog",
         "title": "FreeLint: Debug Log Current File"
       },
       {
-        "command": "freelint.createTestFile",
-        "title": "FreeLint: Create Test JSX File"
+        "command": "freelint.createReactTestFile",
+        "title": "FreeLint: Create React Test JSX File"
+      },
+      {
+        "command": "freelint.createImportExportTestFile",
+        "title": "FreeLint: Create Import/Export Test JSX File"
+      },
+      {
+        "command": "freelint.createJavaScriptTestFile",
+        "title": "FreeLint: Create JavaScript Test File"
       },
       {
         "command": "freelint.toggle",
@@ -73,6 +81,7 @@
     "@babel/preset-react": "^7.26.3",
     "@babel/preset-typescript": "^7.23.3",
     "eslint": "^8.56.0",
+    "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^5.2.0",
     "esquery": "^1.6.0"
