@@ -1,44 +1,40 @@
-# Changelog
+# Change Log
 
-## [0.0.3] - 2023-08-30
+All notable changes to the "freelint" extension will be documented in this file.
 
-### Added
-
-- Toggle command to enable/disable FreeLint functionality
-- Status bar indicator showing FreeLint's current state
-- Quick toggle by clicking the status bar item
-
-## [0.0.2] - 2023-08-25
+## [0.0.4] - 2023-05-15
 
 ### Added
-
-- New modular architecture with separation of concerns
-- Logger module with standardized logging methods
-- Dedicated Linter class to handle all ESLint operations
-- Support for linting files immediately upon opening
-- Enhanced error handling throughout the codebase
-
-### Changed
-
-- Refactored extension.ts to focus solely on extension activation and event wiring
-- Improved diagnostic collection management
-- Enhanced output readability with structured logging
-- Simplified test file creation process
-- Better organization of ESLint configuration
+- New command: `FreeLint: Set React Version for Linting`
+- New setting: `freelint.reactVersion` to specify the React version for linting rules
+- Enhanced logging and error reporting for better debugging
+- New command: `FreeLint: Create TypeScript React Test File` for TSX linting examples
 
 ### Fixed
+- Improved ESLint configuration to better handle JavaScript files
+- Fixed parser configuration to properly use @babel/eslint-parser
+- Restructured linter code for better organization and maintainability
+- Moved test file generators to a separate module for cleaner code structure
 
-- ESQuery compatibility issue with version ^1.4.0
-- Improved handling of non-file documents to prevent errors
-- Better error messages with specific error sources
-- Fixed inconsistent logging format
-
-## [0.0.1] - 2023-07-15
+## [0.0.3] - 2023-05-01
 
 ### Added
+- Support for linting TypeScript (.ts) and TypeScript React (.tsx) files
+- Test file generation for demonstrating lint capabilities
+- Status bar indicator to show whether FreeLint is enabled or disabled
 
-- Initial release of FreeLint extension
-- Basic ESLint functionality without requiring local installation
-- Support for React and React Hooks linting
-- Debug command for diagnostic information
-- Test file creation command
+### Fixed
+- Improved error handling when ESLint encounters parsing issues
+
+## [0.0.2] - 2023-04-15
+
+### Added
+- Support for eslint-plugin-import to detect import/export issues
+- Ability to toggle FreeLint on/off
+
+## [0.0.1] - 2023-04-01
+
+### Added
+- Initial release of FreeLint
+- Basic ESLint integration with React and React Hooks support
+- Automatic linting on file open and save
