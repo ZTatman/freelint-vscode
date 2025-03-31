@@ -16,8 +16,8 @@ export class Logger {
    * @param message The error message to log
    * @param show Whether to show the output channel
    */
-  public error(message: string, show = true): void {
-    this.outputChannel.appendLine(`[ERROR] ${message}`);
+  public error(message: string, show = false): void {
+    this.outputChannel.appendLine(`[ERROR]: ${message}`);
     if (show) {
       this.outputChannel.show(true);
     }
@@ -29,7 +29,7 @@ export class Logger {
    * @param show Whether to show the output channel
    */
   public info(message: string, show = false): void {
-    this.outputChannel.appendLine(message);
+    this.outputChannel.appendLine(`[INFO]: ${message}`);
     if (show) {
       this.outputChannel.show(true);
     }
@@ -56,7 +56,7 @@ export class Logger {
     if (errorCount > 0 || warningCount > 0) {
       this.info(
         `Linted ${fileName}: ${errorCount} errors, ${warningCount} warnings`,
-        errorCount > 0
+        false
       );
     }
   }
@@ -80,7 +80,7 @@ export class Logger {
     this.info(`File being analyzed: ${uri.fsPath}`, true);
 
     // Show diagnostic information
-    this.info("\n--- FreeLint Diagnostics Summary ---", true);
+    this.info("--- FreeLint Diagnostics Summary ---", true);
 
     // Get our own diagnostics
     const freelintDiagnostics = diagnosticCollection.get(uri) || [];
@@ -89,8 +89,9 @@ export class Logger {
     // Count by rule
     const ruleCount: Record<string, number> = {};
     for (const diag of freelintDiagnostics) {
-      const ruleName =
-        diag.source?.replace("freelint (", "").replace(")", "") || "unknown";
+      // Extract rule name without removing closing parenthesis
+      const ruleName = diag.source || "unknown";
+      logger.info(`Diag source: ${diag.source}`);
       ruleCount[ruleName] = (ruleCount[ruleName] || 0) + 1;
     }
 
@@ -106,7 +107,7 @@ export class Logger {
     const allDiagnostics = vscode.languages.getDiagnostics(uri);
     if (allDiagnostics.length > freelintDiagnostics.length) {
       this.info(
-        `\nOther linters found ${
+        `Other linters found ${
           allDiagnostics.length - freelintDiagnostics.length
         } additional issues`,
         true
