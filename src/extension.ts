@@ -14,9 +14,11 @@ let statusBarItem: vscode.StatusBarItem;
  */
 export function activate(context: vscode.ExtensionContext) {
   // Initialize vscode.commands, vscode.window, and vscode.workspace
+
   const registerCommand = vscode.commands.registerCommand;
   const window = vscode.window;
   const workspace = vscode.workspace;
+  window.showInformationMessage("Freelint Extension Activated!");
   try {
     // Initialize linter
     linter = createLinter(context.extensionPath);
@@ -27,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Lint the active editor if it's a JavaScript/JSX/TypeScript file
     if (window.activeTextEditor) {
       linter.lintDocument(window.activeTextEditor.document).catch((err) => {
-        logger.error(`Error linting active document: ${err}`);
+        logger.error(`Error linting active document: ${err}`, true);
       });
     }
 
@@ -35,7 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (window.visibleTextEditors.length > 0) {
       for (const editor of window.visibleTextEditors) {
         linter.lintDocument(editor.document).catch((err) => {
-          logger.error(`Error linting visible document: ${err}`);
+          logger.error(`Error linting visible documents: ${err}`, true);
         });
       }
     }
@@ -44,6 +46,8 @@ export function activate(context: vscode.ExtensionContext) {
     const lintCommand = registerCommand("freelint.lintFile", async () => {
       const editor = window.activeTextEditor;
       if (!editor) {
+        logger.error("No active editor", true);
+        window.showErrorMessage("No active editor");
         return;
       }
       await linter.lintDocument(editor.document);
@@ -52,16 +56,17 @@ export function activate(context: vscode.ExtensionContext) {
     // Register a debug command to manually trigger logging
     const debugCommand = registerCommand("freelint.debugLog", async () => {
       const editor = window.activeTextEditor;
-      if (editor) {
-        await linter.lintDocument(editor.document);
-        logger.logDiagnosticsSummary(
+      if (!editor) {
+        logger.error("No active editor", true);
+        window.showErrorMessage("No active editor");
+        return;
+      }
+      await linter.lintDocument(editor.document);
+      logger.logDiagnosticsSummary(
           editor.document.uri,
           linter.getDiagnosticCollection(),
           linter.getEslintVersion()
-        );
-      } else {
-        logger.info("No active editor", true);
-      }
+      );
     });
 
     // Register a command to create and open a test file
@@ -71,6 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Create a temp file
         const workspaceFolder = workspace.workspaceFolders?.[0];
         if (!workspaceFolder) {
+          logger.error("No workspace folder open", true);
           window.showErrorMessage("No workspace folder open");
           return;
         }
@@ -85,6 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Create a temp file
         const workspaceFolder = workspace.workspaceFolders?.[0];
         if (!workspaceFolder) {
+          logger.error("No workspace folder open", true);
           window.showErrorMessage("No workspace folder open");
           return;
         }
@@ -97,7 +104,7 @@ export function activate(context: vscode.ExtensionContext) {
       const isEnabled = linter.toggle();
       updateStatusBar(isEnabled);
       if (isEnabled) {
-        logger.info("FreeLint enabled", true);
+        logger.info("FreeLint enabled");
         window.showInformationMessage("FreeLint enabled");
 
         // Re-lint the active document
@@ -105,7 +112,7 @@ export function activate(context: vscode.ExtensionContext) {
           await linter.lintDocument(window.activeTextEditor.document);
         }
       } else {
-        logger.info("FreeLint disabled - diagnostics cleared", true);
+        logger.info("FreeLint disabled - diagnostics cleared");
         window.showInformationMessage("FreeLint disabled");
       }
     });
@@ -115,6 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
       async () => {
         const workspaceFolder = workspace.workspaceFolders?.[0];
         if (!workspaceFolder) {
+          logger.error("No workspace folder open", true);
           window.showErrorMessage("No workspace folder open");
           return;
         }
@@ -122,8 +130,53 @@ export function activate(context: vscode.ExtensionContext) {
       }
     );
 
+    // Register a command to set React version
+    const setReactVersionCommand = registerCommand(
+      "freelint.setReactVersion",
+      async () => {
+        // Provide common React versions as options
+        const reactVersions = [
+          "18.2.0", // Current stable
+          "18.0.0", // React 18 initial
+          "17.0.2", // React 17 latest
+          "16.14.0", // React 16 latest
+          "16.8.0"  // First with hooks
+        ];
+        
+        // Get current setting
+        const currentVersion = workspace.getConfiguration("freelint").get("reactVersion", "18.2.0");
+        
+        // Show picker with current version highlighted
+        const selectedVersion = await window.showQuickPick(reactVersions, {
+          placeHolder: `Select React version for linting (current: ${currentVersion})`,
+        });
+        
+        if (selectedVersion) {
+          // Update the setting
+          await workspace.getConfiguration("freelint").update(
+            "reactVersion",
+            selectedVersion,
+            vscode.ConfigurationTarget.Global
+          );
+          
+          // Show confirmation
+          window.showInformationMessage(`React version set to ${selectedVersion}.`);
+          
+          // Reload linter with new settings
+          linter = createLinter(context.extensionPath);
+          
+          // Re-lint the active document
+          const editor = window.activeTextEditor;
+          if (editor) {
+            await linter.lintDocument(editor.document);
+          }
+        }
+      }
+    );
+
     // Sets up automatic linting on file save
     const saveListener = workspace.onDidSaveTextDocument(async (document) => {
+      logger.info(`Document saved: ${document.fileName}`);
       await linter.lintDocument(document);
     });
 
@@ -155,7 +208,8 @@ export function activate(context: vscode.ExtensionContext) {
       saveListener,
       openListener,
       activeEditorListener,
-      statusBarItem
+      statusBarItem,
+      setReactVersionCommand
     );
 
     // Create and initialize status bar item
@@ -167,10 +221,8 @@ export function activate(context: vscode.ExtensionContext) {
     updateStatusBar(true); // Initial state is enabled
     statusBarItem.show();
   } catch (error) {
+    logger.error(`Initialization error: ${error}`, true);
     window.showErrorMessage(`Failed to initialize linter: ${error}`);
-    logger.error(`Initialization error: ${error}`);
-  } finally {
-    window.showInformationMessage("Freelint Extension Activated!");
   }
 }
 

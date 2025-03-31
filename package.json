@@ -46,6 +46,10 @@
       {
         "command": "freelint.toggle",
         "title": "FreeLint: Toggle On/Off"
+      },
+      {
+        "command": "freelint.setReactVersion",
+        "title": "FreeLint: Set React Version for Linting"
       }
     ],
     "configuration": {
@@ -60,6 +64,11 @@
           "items": {
             "type": "string"
           }
+        },
+        "freelint.reactVersion": {
+          "type": "string",
+          "description": "React version to use for ESLint React rules. Common versions are: 18.2.0, 17.0.2, 16.14.0.",
+          "default": "18.2.0"
         }
       }
     }

@@ -12,54 +12,64 @@ export class Linter {
   private enabled: boolean = true;
 
   constructor(extensionPath: string) {
+    // Get the configured React version from settings
+    const reactVersion = vscode.workspace.getConfiguration("freelint").get("reactVersion", "18.2.0");
+    logger.info(`Using React version ${reactVersion} for linting rules`);
+
     // Initialize ESLint with a basic configuration
-    this.eslint = new ESLint({
-      cwd: extensionPath,
-      useEslintrc: false,
-      baseConfig: {
-        plugins: ["react", "react-hooks", "import"],
-        extends: [
-          "eslint:recommended",
-          "plugin:react/recommended",
-          "plugin:import/recommended",
-        ],
-        env: {
-          browser: true,
-          es2021: true,
-          node: true,
-        },
-        parserOptions: {
-          ecmaVersion: 2021,
-          sourceType: "module",
-          ecmaFeatures: {
-            jsx: true,
+    try {
+      this.eslint = new ESLint({
+        cwd: extensionPath,
+        useEslintrc: false,
+        baseConfig: {
+          plugins: ["react", "react-hooks", "import"],
+          extends: [
+            "eslint:recommended",
+            "plugin:react/recommended",
+            "plugin:import/recommended",
+          ],
+          env: {
+            browser: true,
+            es2021: true,
+            node: true,
+          },
+          parserOptions: {
+            ecmaVersion: 2021,
+            sourceType: "module",
+            ecmaFeatures: {
+              jsx: true,
+            },
+          },
+          rules: {
+            "react/react-in-jsx-scope": "off",
+            // General rules
+            // Most of these rules are already included in eslint:recommended
+            // Only include rules that differ from defaults or need specific configuration
+            "no-console": "warn",
+            // React rules
+            "react/jsx-pascal-case": "error",
+            "react-hooks/rules-of-hooks": "error",
+            "react-hooks/exhaustive-deps": "warn",
+            // Import rules
+            "import/no-unresolved": "error",
+            "import/named": "error",
+            "import/default": "error",
+            "import/namespace": "error",
+            "import/no-absolute-path": "error",
+          },
+          settings: {
+            react: {
+              version: reactVersion, // Use the configured version
+            },
           },
         },
-        rules: {
-          "react/react-in-jsx-scope": "off",
-          // General rules
-          // Most of these rules are already included in eslint:recommended
-          // Only include rules that differ from defaults or need specific configuration
-          "no-console": "warn",
-          quotes: ["warn", "single", { avoidEscape: true }],
-          // React rules
-          "react/jsx-pascal-case": "error",
-          "react-hooks/rules-of-hooks": "error",
-          "react-hooks/exhaustive-deps": "warn",
-          // Import rules
-          "import/no-unresolved": "error",
-          "import/named": "error",
-          "import/default": "error",
-          "import/namespace": "error",
-          "import/no-absolute-path": "error",
-        },
-        settings: {
-          react: {
-            version: "detect",
-          },
-        },
-      },
-    } as any);
+      } as any);
+
+      logger.info("ESLint instance successfully created");
+    } catch (err) {
+      logger.error(`Failed to create ESLint instance: ${err}`, true);
+      throw err;
+    }
 
     // Create diagnostic collection
     this.diagnosticCollection =
