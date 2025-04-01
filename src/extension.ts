@@ -130,6 +130,32 @@ export function activate(context: vscode.ExtensionContext) {
       }
     );
 
+    // Sets up automatic linting on file save
+    const saveListener = workspace.onDidSaveTextDocument(async (document) => {
+      if (!document.fileName.includes('extension-output')) {
+        logger.info(`Document saved: ${document.fileName}`);
+        await linter.lintDocument(document);
+      }
+    });
+
+    // Lint files when they are opened
+    const openListener = workspace.onDidOpenTextDocument(async (document) => {
+      if (!document.fileName.includes('extension-output')) {
+        logger.info(`Document opened: ${document.fileName}`);
+        await linter.lintDocument(document);
+      }
+    });
+
+    // Also lint when an editor becomes active
+    const activeEditorListener = window.onDidChangeActiveTextEditor(
+      async (editor) => {
+        if (editor && !editor.document.fileName.includes('extension-output')) {
+          logger.info(`Editor became active: ${editor.document.fileName}`);
+          await linter.lintDocument(editor.document);
+        }
+      }
+    );
+
     // Register a command to set React version
     const setReactVersionCommand = registerCommand(
       "freelint.setReactVersion",
@@ -170,29 +196,6 @@ export function activate(context: vscode.ExtensionContext) {
           if (editor) {
             await linter.lintDocument(editor.document);
           }
-        }
-      }
-    );
-
-    // Sets up automatic linting on file save
-    const saveListener = workspace.onDidSaveTextDocument(async (document) => {
-      logger.info(`Document saved: ${document.fileName}`);
-      await linter.lintDocument(document);
-    });
-
-    // Lint files when they are opened
-    const openListener = workspace.onDidOpenTextDocument(async (document) => {
-      // Log when a document is opened
-      logger.info(`Document opened: ${document.fileName}`);
-      await linter.lintDocument(document);
-    });
-
-    // Also lint when an editor becomes active
-    const activeEditorListener = window.onDidChangeActiveTextEditor(
-      async (editor) => {
-        if (editor) {
-          logger.info(`Editor became active: ${editor.document.fileName}`);
-          await linter.lintDocument(editor.document);
         }
       }
     );
