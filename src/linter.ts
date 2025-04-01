@@ -7,9 +7,12 @@ import { logger } from "./logger";
  * Linter class to handle ESLint integration and diagnostics.
  */
 export class Linter {
-  private eslint: ESLint;
+  private changeListener: vscode.Disposable | undefined;
+  private codeActionProvider: vscode.Disposable | undefined;
+  private debounceTimer: NodeJS.Timeout | undefined;
   private diagnosticCollection: vscode.DiagnosticCollection;
   private enabled: boolean = true;
+  private eslint: ESLint;
 
   constructor(extensionPath: string) {
     // Get the configured React version from settings
@@ -74,6 +77,41 @@ export class Linter {
     // Create diagnostic collection
     this.diagnosticCollection =
       vscode.languages.createDiagnosticCollection("freelint");
+
+    // Register code action provider
+    this.codeActionProvider = vscode.languages.registerCodeActionsProvider(
+      [
+        { scheme: 'file', language: 'javascript' },
+        { scheme: 'file', language: 'javascriptreact' },
+        { scheme: 'file', language: 'typescript' },
+        { scheme: 'file', language: 'typescriptreact' }
+      ],
+      {
+        provideCodeActions: this.provideCodeActions.bind(this)
+      }
+    );
+
+    // Add after code action provider registration
+    this.changeListener = vscode.workspace.onDidChangeTextDocument(event => {
+      if (this.enabled) {
+        this.debounceLint(event.document);
+      }
+    });
+  }
+
+  /**
+   * Debounce the linting to avoid excessive updates
+   */
+  private debounceLint(document: vscode.TextDocument): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    
+    this.debounceTimer = setTimeout(() => {
+      this.lintDocument(document).catch(err => {
+        logger.error(`Error during debounced lint: ${err}`);
+      });
+    }, 500); // Wait 500ms after last change before linting
   }
 
   /**
@@ -194,10 +232,12 @@ export class Linter {
    */
   public toggle(): boolean {
     this.enabled = !this.enabled;
-
     if (!this.enabled) {
-      // Clear all diagnostics when disabled
+      // Clear all diagnostics and pending lint operations when disabled
       this.diagnosticCollection.clear();
+      if (this.debounceTimer) {
+        clearTimeout(this.debounceTimer);
+      }
     }
 
     return this.enabled;
