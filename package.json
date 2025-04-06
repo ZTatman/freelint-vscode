@@ -59,7 +59,8 @@
           "description": "Enable or disable specific ESLint plugins.",
           "default": [
             "react",
-            "react-hooks"
+            "react-hooks",
+            "import"
           ],
           "items": {
             "type": "string"
@@ -69,6 +70,24 @@
           "type": "string",
           "description": "React version to use for ESLint React rules. Common versions are: 18.2.0, 17.0.2, 16.14.0.",
           "default": "18.2.0"
+        },
+        "freelint.debounceDelay": {
+          "type": "number",
+          "description": "Delay in milliseconds before linting after a document change. Lower values make linting more responsive but may impact performance.",
+          "default": 500,
+          "minimum": 100,
+          "maximum": 2000
+        },
+        "freelint.ignorePatterns": {
+          "type": "array",
+          "description": "Glob patterns for files and directories to ignore during linting. Example: ['**/node_modules/**', '**/dist/**', '**/*.min.js']",
+          "default": [
+            "**/node_modules/**",
+            "**/dist/**"
+          ],
+          "items": {
+            "type": "string"
+          }
         }
       }
     }
@@ -96,6 +115,7 @@
     "esquery": "^1.6.0"
   },
   "devDependencies": {
+    "@types/minimatch": "^5.1.2",
     "@types/node": "^20.11.19",
     "@types/vscode": "^1.80.0",
     "@vscode/test-electron": "^2.3.9",

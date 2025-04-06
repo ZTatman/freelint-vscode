@@ -1,20 +1,15 @@
 import { ESLint } from "eslint";
+import minimatch from "minimatch";
 import * as path from "path";
 import * as vscode from "vscode";
 
 import { logger } from "./logger";
 
-/**
- * Interface for ESLint message fix
- */
 interface ESLintFix {
   range: [number, number];
   text: string;
 }
 
-/**
- * Interface for ESLint message
- */
 interface ESLintMessage {
   ruleId: string | null;
   severity: number;
@@ -25,6 +20,20 @@ interface ESLintMessage {
   endColumn?: number;
   fix?: ESLintFix;
 }
+
+interface PluginExtendMap {
+  [key: string]: string;
+}
+
+/**
+ * Maps each plugin to its corresponding extends configuration
+ * This helps dynamically enable/disable plugins based on user configuration
+ */
+const PLUGIN_EXTEND_MAP: PluginExtendMap = {
+  "react": "plugin:react/recommended",
+  "react-hooks": "plugin:react-hooks/recommended",
+  "import": "plugin:import/recommended"
+};
 
 /**
  * Linter class to handle ESLint integration and diagnostics.
@@ -37,22 +46,24 @@ export class Linter {
   #enabled: boolean = true;
   #eslint: ESLint;
   #extensionPath: string;
+  #debounceDelay: number;
 
   constructor(extensionPath: string) {
+    // Initialize the extension path
     this.#extensionPath = extensionPath;
-    // Get the configured React version from settings
-    const reactVersion = vscode.workspace.getConfiguration("freelint").get("reactVersion", "18.2.0");
-    logger.info(`Using React version ${reactVersion} for linting rules`);
+
+    // Configure the ESLint instance
+    const config = vscode.workspace.getConfiguration("freelint");
+    const enabledPlugins = config.get<string[]>("enabledPlugins", ["react", "react-hooks", "import"]);
+    const extendsConfig = enabledPlugins.map(plugin => PLUGIN_EXTEND_MAP[plugin]);
+    const reactVersion = config.get("reactVersion", "18.2.0");
+    this.#debounceDelay = config.get("debounceDelay", 500);
 
     // Initialize ESLint with a basic configuration
     try {
       const baseConfig = {
-        plugins: ["react", "react-hooks", "import"],
-        extends: [
-          "eslint:recommended",
-          "plugin:react/recommended",
-          "plugin:import/recommended",
-        ],
+        plugins: [...enabledPlugins],
+        extends: [...extendsConfig],
         env: {
           browser: true,
           es2021: true,
@@ -153,15 +164,15 @@ export class Linter {
    */
   public async lintDocument(document: vscode.TextDocument): Promise<void> {
     try {
+      
       // Skip linting if disabled
       if (!this.#enabled) {
         return;
       }
 
-      // Only lint JavaScript/JSX files
+      // Skip if the file extension is not valid
       const validExtensions = [".js", ".jsx", ".ts", ".tsx"];
-      const fileExtension = path.extname(document.fileName);
-
+      const fileExtension = path.extname(document.fileName);      
       if (!validExtensions.includes(fileExtension)) {
         return;
       }
@@ -174,6 +185,16 @@ export class Linter {
       // Skip if the document is the output channel
       if (document.fileName.includes('extension-output')) {
         return;
+      }
+
+      // Skip if the document matches any ignore patterns
+      const config = vscode.workspace.getConfiguration("freelint");
+      const ignorePatterns = config.get<string[]>("ignorePatterns", []);
+      for (const pattern of ignorePatterns) {
+        if (minimatch(document.fileName, pattern)) {
+          logger.debug(`Skipping ${document.fileName} due to ignore pattern: ${pattern}`);
+          return;
+        }
       }
 
       const text = document.getText();
@@ -190,18 +211,21 @@ export class Linter {
 
         for (const result of results) {
           for (const message of result.messages) {
-            // Skip messages without line information (can't create range)
             if (!message.line) {
               continue;
             }
 
+            // Create a VS Code Range object to represent the location of the lint issue
+            // Parameters: startLine, startColumn, endLine, endColumn (all 0-based)
+            // ESLint reports positions as 1-based, so we subtract 1 to convert to VS Code's 0-based indexing
             const range = new vscode.Range(
-              message.line - 1,
-              message.column - 1,
-              message.endLine ? message.endLine - 1 : message.line - 1,
-              message.endColumn ? message.endColumn - 1 : message.column - 1
+              message.line - 1,                                     // Start line (convert from 1-based to 0-based)
+              message.column - 1,                                   // Start column (convert from 1-based to 0-based)
+              message.endLine ? message.endLine - 1 : message.line - 1,  // End line (use endLine if available, otherwise use line)
+              message.endColumn ? message.endColumn - 1 : message.column - 1  // End column (use endColumn if available, otherwise use column)
             );
 
+            // Create a new diagnostic object with the range and message
             const diagnostic = new vscode.Diagnostic(
               range,
               message.message,
@@ -229,8 +253,7 @@ export class Linter {
         if (JSON.stringify(currentDiagnostics) !== JSON.stringify(diagnostics)) {
           this.#diagnosticCollection.set(document.uri, diagnostics);
           if (diagnostics.length > 0) {
-            const fileName = path.basename(document.fileName);
-            logger.logLintResults(fileName, errorCount, warningCount);
+            logger.logLintResults(document.fileName, errorCount, warningCount);
           }
         }
       } catch (eslintError) {
@@ -505,7 +528,7 @@ export class Linter {
       this.lintDocument(document).catch((err) => {
         logger.error(`Error during debounced lint: ${err}`);
       });
-    }, 500); // Wait 500ms after last change before linting
+    }, this.#debounceDelay);
     }
 }
 
