@@ -1,16 +1,16 @@
-import * as vscode from "vscode";
 import * as path from "path";
-import { logger } from "./logger";
+import * as vscode from "vscode";
 import { Linter } from "./linter";
+import { logger } from "./logger";
 
 /**
  * Class to handle creation of test files for demonstrating linting capabilities.
  */
 export class TestCommands {
-  private linter: Linter;
+  #linter: Linter;
 
   constructor(linter: Linter) {
-    this.linter = linter;
+    this.#linter = linter;
   }
 
   /**
@@ -80,7 +80,7 @@ export default HooksComponent;
       await vscode.window.showTextDocument(document);
 
       // Trigger linting
-      await this.linter.lintDocument(document);
+      await this.#linter.lintDocument(document);
 
       // Show a message in the output channel
       logger.info(
@@ -199,7 +199,7 @@ console.log('This file demonstrates various import/export errors');
       await vscode.window.showTextDocument(document);
 
       // Trigger linting
-      await this.linter.lintDocument(document);
+      await this.#linter.lintDocument(document);
 
       // Show a message in the output channel
       logger.info(
@@ -308,7 +308,7 @@ if (true) {
       await vscode.window.showTextDocument(document);
 
       // Trigger linting
-      await this.linter.lintDocument(document);
+      await this.#linter.lintDocument(document);
 
       // Show a message in the output channel
       logger.info(

@@ -4,10 +4,10 @@ import * as vscode from "vscode";
  * Logger class to handle all output channel and debug logging functionality.
  */
 export class Logger {
-  private outputChannel: vscode.OutputChannel;
+  #outputChannel: vscode.OutputChannel;
 
   constructor() {
-    this.outputChannel = vscode.window.createOutputChannel("FreeLint");
+    this.#outputChannel = vscode.window.createOutputChannel("FreeLint");
     this.info("FreeLint extension activated");
   }
 
@@ -17,9 +17,9 @@ export class Logger {
    * @param show Whether to show the output channel
    */
   public error(message: string, show = false): void {
-    this.outputChannel.appendLine(`[ERROR]: ${message}`);
+    this.#outputChannel.appendLine(`[ERROR]: ${message}`);
     if (show) {
-      this.outputChannel.show(true);
+      this.#outputChannel.show(true);
     }
   }
 
@@ -29,9 +29,9 @@ export class Logger {
    * @param show Whether to show the output channel
    */
   public info(message: string, show = false): void {
-    this.outputChannel.appendLine(`[INFO]: ${message}`);
+    this.#outputChannel.appendLine(`[INFO]: ${message}`);
     if (show) {
-      this.outputChannel.show(true);
+      this.#outputChannel.show(true);
     }
   }
 
@@ -39,7 +39,7 @@ export class Logger {
    * Clear the output channel
    */
   public clear(): void {
-    this.outputChannel.clear();
+    this.#outputChannel.clear();
   }
 
   /**
@@ -119,7 +119,7 @@ export class Logger {
    * Dispose the output channel.
    */
   public dispose(): void {
-    this.outputChannel.dispose();
+    this.#outputChannel.dispose();
   }
 }
 

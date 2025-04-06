@@ -1,6 +1,7 @@
-import * as vscode from "vscode";
 import { ESLint } from "eslint";
 import * as path from "path";
+import * as vscode from "vscode";
+
 import { logger } from "./logger";
 
 /**
@@ -29,16 +30,16 @@ interface ESLintMessage {
  * Linter class to handle ESLint integration and diagnostics.
  */
 export class Linter {
-  private changeListener: vscode.Disposable | undefined;
-  private codeActionProvider: vscode.Disposable | undefined;
-  private debounceTimer: NodeJS.Timeout | undefined;
-  private diagnosticCollection: vscode.DiagnosticCollection;
-  private enabled: boolean = true;
-  private eslint: ESLint;
-  private extensionPath: string;
+  #changeListener: vscode.Disposable | undefined;
+  #codeActionProvider: vscode.Disposable | undefined;
+  #debounceTimer: NodeJS.Timeout | undefined;
+  #diagnosticCollection: vscode.DiagnosticCollection;
+  #enabled: boolean = true;
+  #eslint: ESLint;
+  #extensionPath: string;
 
   constructor(extensionPath: string) {
-    this.extensionPath = extensionPath;
+    this.#extensionPath = extensionPath;
     // Get the configured React version from settings
     const reactVersion = vscode.workspace.getConfiguration("freelint").get("reactVersion", "18.2.0");
     logger.info(`Using React version ${reactVersion} for linting rules`);
@@ -95,7 +96,7 @@ export class Linter {
         },
       };
 
-      this.eslint = new ESLint({
+      this.#eslint = new ESLint({
         cwd: extensionPath,
         useEslintrc: false,
         baseConfig: baseConfig as any,
@@ -108,11 +109,11 @@ export class Linter {
     }
 
     // Create diagnostic collection
-    this.diagnosticCollection =
+    this.#diagnosticCollection =
       vscode.languages.createDiagnosticCollection("freelint");
 
     // Register code action provider
-    this.codeActionProvider = vscode.languages.registerCodeActionsProvider(
+    this.#codeActionProvider = vscode.languages.registerCodeActionsProvider(
       [
         { scheme: 'file', language: 'javascript' },
         { scheme: 'file', language: 'javascriptreact' },
@@ -120,14 +121,14 @@ export class Linter {
         { scheme: 'file', language: 'typescriptreact' }
       ],
       {
-        provideCodeActions: this.provideCodeActions.bind(this)
+        provideCodeActions: this.#provideCodeActions.bind(this)
       }
     );
 
     // Add after code action provider registration
-    this.changeListener = vscode.workspace.onDidChangeTextDocument(event => {
-      if (this.enabled) {
-        this.debounceLint(event.document);
+    this.#changeListener = vscode.workspace.onDidChangeTextDocument(event => {
+      if (this.#enabled) {
+        this.#debounceLint(event.document);
       }
     });
   }
@@ -143,7 +144,7 @@ export class Linter {
    * Gets the diagnostic collection.
    */
   public getDiagnosticCollection(): vscode.DiagnosticCollection {
-    return this.diagnosticCollection;
+    return this.#diagnosticCollection;
   }
 
   /**
@@ -153,7 +154,7 @@ export class Linter {
   public async lintDocument(document: vscode.TextDocument): Promise<void> {
     try {
       // Skip linting if disabled
-      if (!this.enabled) {
+      if (!this.#enabled) {
         return;
       }
 
@@ -178,7 +179,7 @@ export class Linter {
       const text = document.getText();
 
       try {
-        const results = await this.eslint.lintText(text, {
+        const results = await this.#eslint.lintText(text, {
           filePath: document.uri.fsPath,
           warnIgnored: true,
         });
@@ -224,9 +225,9 @@ export class Linter {
         }
 
         // Only update diagnostics and log if there are changes
-        const currentDiagnostics = this.diagnosticCollection.get(document.uri) || [];
+        const currentDiagnostics = this.#diagnosticCollection.get(document.uri) || [];
         if (JSON.stringify(currentDiagnostics) !== JSON.stringify(diagnostics)) {
-          this.diagnosticCollection.set(document.uri, diagnostics);
+          this.#diagnosticCollection.set(document.uri, diagnostics);
           if (diagnostics.length > 0) {
             const fileName = path.basename(document.fileName);
             logger.logLintResults(fileName, errorCount, warningCount);
@@ -248,15 +249,15 @@ export class Linter {
    * Dispose the diagnostic collection.
    */
     public dispose(): void {
-      this.diagnosticCollection.dispose();
-      if (this.codeActionProvider) {
-        this.codeActionProvider.dispose();
+      this.#diagnosticCollection.dispose();
+      if (this.#codeActionProvider) {
+        this.#codeActionProvider.dispose();
       }
-      if (this.changeListener) {
-        this.changeListener.dispose();
+      if (this.#changeListener) {
+        this.#changeListener.dispose();
       }
-      if (this.debounceTimer) {
-        clearTimeout(this.debounceTimer);
+      if (this.#debounceTimer) {
+        clearTimeout(this.#debounceTimer);
       }
     }
   
@@ -265,23 +266,23 @@ export class Linter {
      * @returns The new state (true = enabled, false = disabled)
      */
     public toggle(): boolean {
-      this.enabled = !this.enabled;
-      if (!this.enabled) {
+      this.#enabled = !this.#enabled;
+      if (!this.#enabled) {
         // Clear all diagnostics and pending lint operations when disabled
-        this.diagnosticCollection.clear();
-        if (this.debounceTimer) {
-          clearTimeout(this.debounceTimer);
+        this.#diagnosticCollection.clear();
+        if (this.#debounceTimer) {
+          clearTimeout(this.#debounceTimer);
         }
       }
   
-      return this.enabled;
+      return this.#enabled;
     }
   
     /**
      * Check if the linter is currently enabled
      */
     public isEnabled(): boolean {
-      return this.enabled;
+      return this.#enabled;
     }
 
   /**
@@ -289,7 +290,7 @@ export class Linter {
    * @param document Document to fix
    * @returns ESLint results with fixes applied
    */
-  private async getAutoFixResults(document: vscode.TextDocument) {
+  async #getAutoFixResults(document: vscode.TextDocument) {
     const text = document.getText();
     
     try {
@@ -313,6 +314,7 @@ export class Linter {
           },
         },
         rules: {
+          // eslint
           "react/react-in-jsx-scope": "off",
           "no-console": "warn",
           "no-unused-vars": "warn",
@@ -324,9 +326,13 @@ export class Linter {
           "eqeqeq": ["warn", "always"],
           "semi": ["warn", "always"],
           "no-undef": "error",
+          // react
           "react/jsx-pascal-case": "error",
           "react-hooks/rules-of-hooks": "error",
           "react-hooks/exhaustive-deps": "warn",
+          // import
+          "import/no-deprecated": "warn",
+          "import/cycle": "error",
           "import/no-unresolved": "error",
           "import/named": "error",
           "import/default": "error",
@@ -336,7 +342,7 @@ export class Linter {
       };
 
       const fixESLint = new ESLint({
-        cwd: this.extensionPath,
+        cwd: this.#extensionPath,
         useEslintrc: false,
         fix: true,
         baseConfig: baseConfig as any,
@@ -357,7 +363,7 @@ export class Linter {
   /**
    * Provides code actions for ESLint diagnostics
    */
-  private async provideCodeActions(
+  async #provideCodeActions(
     document: vscode.TextDocument,
     range: vscode.Range | vscode.Selection,
     context: vscode.CodeActionContext
@@ -414,7 +420,7 @@ export class Linter {
       if (context.diagnostics.length > 0) {
         // Get ESLint fixes for the entire file using our helper method
         const text = document.getText();
-        const results = await this.getAutoFixResults(document);
+        const results = await this.#getAutoFixResults(document);
 
         const eslintResult = results[0];
         
@@ -490,16 +496,16 @@ export class Linter {
   /**
    * Debounce the linting to avoid excessive updates
    */
-    private debounceLint(document: vscode.TextDocument): void {
-      if (this.debounceTimer) {
-        clearTimeout(this.debounceTimer);
+    #debounceLint(document: vscode.TextDocument): void {
+      if (this.#debounceTimer) {
+        clearTimeout(this.#debounceTimer);
       }
-      
-      this.debounceTimer = setTimeout(() => {
-        this.lintDocument(document).catch(err => {
-          logger.error(`Error during debounced lint: ${err}`);
-        });
-      }, 500); // Wait 500ms after last change before linting
+
+    this.#debounceTimer = setTimeout(() => {
+      this.lintDocument(document).catch((err) => {
+        logger.error(`Error during debounced lint: ${err}`);
+      });
+    }, 500); // Wait 500ms after last change before linting
     }
 }
 

@@ -14,17 +14,18 @@ let statusBarItem: vscode.StatusBarItem;
  */
 export function activate(context: vscode.ExtensionContext) {
   // Initialize vscode.commands, vscode.window, and vscode.workspace
-
   const registerCommand = vscode.commands.registerCommand;
   const window = vscode.window;
   const workspace = vscode.workspace;
-  window.showInformationMessage("Freelint Extension Activated!");
+
   try {
     // Initialize linter
     linter = createLinter(context.extensionPath);
 
     // Initialize test commands
     testCommands = createTestCommands(linter);
+
+    window.showInformationMessage("Freelint Extension Activated!");
 
     // Lint the active editor if it's a JavaScript/JSX/TypeScript file
     if (window.activeTextEditor) {

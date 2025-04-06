@@ -2,6 +2,18 @@
 
 All notable changes to the "freelint" extension will be documented in this file.
 
+## [0.0.5] - 2023-05-20
+
+### Added
+- Enhanced debouncing implementation for linting operations
+- Improved private member syntax using "#" prefix for better encapsulation
+- More robust error handling in linting operations
+
+### Fixed
+- Fixed duplicate linting issues in certain scenarios
+- Improved configuration handling for ESLint rules
+- Enhanced debug logging capabilities
+
 ## [0.0.4] - 2023-05-15
 
 ### Added
