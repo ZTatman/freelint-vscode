@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { logger } from "./logger";
 import { Linter, createLinter } from "./linter";
+import { logger } from "./logger";
 import { TestCommands, createTestCommands } from "./testCommands";
 
 let linter: Linter;
@@ -134,7 +134,6 @@ export function activate(context: vscode.ExtensionContext) {
     // Sets up automatic linting on file save
     const saveListener = workspace.onDidSaveTextDocument(async (document) => {
       if (!document.fileName.includes('extension-output')) {
-        logger.info(`Document saved: ${document.fileName}`);
         await linter.lintDocument(document);
       }
     });
@@ -142,7 +141,6 @@ export function activate(context: vscode.ExtensionContext) {
     // Lint files when they are opened
     const openListener = workspace.onDidOpenTextDocument(async (document) => {
       if (!document.fileName.includes('extension-output')) {
-        logger.info(`Document opened: ${document.fileName}`);
         await linter.lintDocument(document);
       }
     });
@@ -151,7 +149,6 @@ export function activate(context: vscode.ExtensionContext) {
     const activeEditorListener = window.onDidChangeActiveTextEditor(
       async (editor) => {
         if (editor && !editor.document.fileName.includes('extension-output')) {
-          logger.info(`Editor became active: ${editor.document.fileName}`);
           await linter.lintDocument(editor.document);
         }
       }

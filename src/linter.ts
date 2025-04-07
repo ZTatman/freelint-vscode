@@ -29,7 +29,7 @@ interface PluginExtendMap {
  * Maps each plugin to its corresponding extends configuration
  * This helps dynamically enable/disable plugins based on user configuration
  */
-const PLUGIN_EXTEND_MAP: PluginExtendMap = {
+const pluginExtendMap: PluginExtendMap = {
   "react": "plugin:react/recommended",
   "react-hooks": "plugin:react-hooks/recommended",
   "import": "plugin:import/recommended"
@@ -40,84 +40,21 @@ const PLUGIN_EXTEND_MAP: PluginExtendMap = {
  */
 export class Linter {
   #changeListener: vscode.Disposable | undefined;
+  #configListener: vscode.Disposable | undefined;
   #codeActionProvider: vscode.Disposable | undefined;
   #debounceTimer: NodeJS.Timeout | undefined;
   #diagnosticCollection: vscode.DiagnosticCollection;
   #enabled: boolean = true;
-  #eslint: ESLint;
+  #eslint!: ESLint;  // Using definite assignment assertion
   #extensionPath: string;
-  #debounceDelay: number;
+  #debounceDelay: number = 500;  // Default value
 
   constructor(extensionPath: string) {
     // Initialize the extension path
     this.#extensionPath = extensionPath;
 
-    // Configure the ESLint instance
-    const config = vscode.workspace.getConfiguration("freelint");
-    const enabledPlugins = config.get<string[]>("enabledPlugins", ["react", "react-hooks", "import"]);
-    const extendsConfig = enabledPlugins.map(plugin => PLUGIN_EXTEND_MAP[plugin]);
-    const reactVersion = config.get("reactVersion", "18.2.0");
-    this.#debounceDelay = config.get("debounceDelay", 500);
-
-    // Initialize ESLint with a basic configuration
-    try {
-      const baseConfig = {
-        plugins: [...enabledPlugins],
-        extends: [...extendsConfig],
-        env: {
-          browser: true,
-          es2021: true,
-          node: true,
-        },
-        parserOptions: {
-          ecmaVersion: 2021,
-          sourceType: "module",
-          ecmaFeatures: {
-            jsx: true,
-          },
-        },
-        rules: {
-          // eslint
-          "react/react-in-jsx-scope": "off",
-          "no-console": "warn",
-          "no-unused-vars": "warn",
-          "no-redeclare": "error",
-          "no-var": "warn",
-          "no-unreachable": "error",
-          "no-extra-semi": "warn",
-          "quotes": ["warn", "single"],
-          "eqeqeq": ["warn", "always"],
-          "semi": ["warn", "always"],
-          "no-undef": "error",
-          // react
-          "react/jsx-pascal-case": "error",
-          "react-hooks/rules-of-hooks": "error",
-          "react-hooks/exhaustive-deps": "warn",
-          // import
-          "import/no-unresolved": "error",
-          "import/named": "error",
-          "import/default": "error",
-          "import/namespace": "error",
-          "import/no-absolute-path": "error",
-        },
-        settings: {
-          react: {
-            version: reactVersion,
-          },
-        },
-      };
-
-      this.#eslint = new ESLint({
-        cwd: extensionPath,
-        useEslintrc: false,
-        baseConfig: baseConfig as any,
-      } as ESLint.Options);
-
-      logger.info("ESLint instance successfully created");
-    } catch (err) {
-      logger.error(`Failed to create ESLint instance: ${err}`, true);
-      throw err;
-    }
+    // Initialize ESLint with configuration
+    this.#initializeESLint();
 
     // Create diagnostic collection
     this.#diagnosticCollection =
@@ -142,6 +79,105 @@ export class Linter {
         this.#debounceLint(event.document);
       }
     });
+
+    // Listen for configuration changes
+    this.#configListener = vscode.workspace.onDidChangeConfiguration(event => {
+      if (event.affectsConfiguration('freelint.plugins') || 
+          event.affectsConfiguration('freelint.reactVersion')) {
+        // Clear existing diagnostics before reinitializing
+        this.#diagnosticCollection.clear();
+        this.#initializeESLint();
+        // Re-lint active editor
+        const activeEditor = vscode.window.activeTextEditor;
+        if (activeEditor) {
+          this.lintDocument(activeEditor.document);
+        }
+        vscode.window.showInformationMessage("FreeLint configuration updated - Rules reloaded");
+      }
+    });
+  }
+
+  /**
+   * Initialize or reinitialize the ESLint instance with current configuration
+   */
+  #initializeESLint(): void {
+    // Configuration settings
+    const config = vscode.workspace.getConfiguration("freelint");
+    this.#debounceDelay = config.get("debounceDelay", 500);
+    const reactVersion = config.get("reactVersion", "18.2.0");
+    const enabledPlugins = config.get<string[]>("plugins", ["react", "react-hooks", "import"]);
+
+    // Initialize ESLint with a basic configuration
+    try {
+      const baseConfig = {
+        plugins: enabledPlugins,
+        extends: [
+          "eslint:recommended",
+          ...enabledPlugins.flatMap(plugin => pluginExtendMap[plugin] ? [pluginExtendMap[plugin]] : []),
+        ],
+        env: {
+          browser: true,
+          es2021: true,
+          node: true,
+        },
+        parserOptions: {
+          ecmaVersion: 2021,
+          sourceType: "module",
+          ecmaFeatures: {
+            jsx: true,
+          },
+        },
+        rules: {
+          // eslint
+          "no-console": "warn",
+          "no-unused-vars": "warn",
+          "no-redeclare": "error",
+          "no-var": "warn",
+          "no-unreachable": "error",
+          "no-extra-semi": "warn",
+          "quotes": ["warn", "single"],
+          "eqeqeq": ["warn", "always"],
+          "semi": ["warn", "always"],
+          "no-undef": "error",
+          // react rules - only include if react plugin is enabled
+          ...(enabledPlugins.includes("react") ? {
+            "react/react-in-jsx-scope": "off",
+            "react/jsx-pascal-case": "error",
+          } : {}),
+          // react-hooks rules - only include if react-hooks plugin is enabled
+          ...(enabledPlugins.includes("react-hooks") ? {
+            "react-hooks/rules-of-hooks": "error",
+            "react-hooks/exhaustive-deps": "warn",
+          } : {}),
+          // import rules - only include if import plugin is enabled
+          ...(enabledPlugins.includes("import") ? {
+            "import/no-unresolved": "error",
+            "import/named": "error",
+            "import/default": "error",
+            "import/namespace": "error",
+            "import/no-absolute-path": "error",
+          } : {}),
+        },
+        settings: {
+          ...(enabledPlugins.includes("react") ? {
+            react: {
+              version: reactVersion,
+            },
+          } : {}),
+        },
+      };
+
+      this.#eslint = new ESLint({
+        cwd: this.#extensionPath,
+        useEslintrc: false,
+        baseConfig: baseConfig as any,
+      } as ESLint.Options);
+
+      logger.info("ESLint instance successfully created");
+    } catch (err) {
+      logger.error(`Failed to create ESLint instance: ${err}`, true);
+      throw err;
+    }
   }
 
   /**
@@ -268,45 +304,48 @@ export class Linter {
     }
   }
 
-    /**
+  /**
    * Dispose the diagnostic collection.
    */
-    public dispose(): void {
-      this.#diagnosticCollection.dispose();
-      if (this.#codeActionProvider) {
-        this.#codeActionProvider.dispose();
-      }
-      if (this.#changeListener) {
-        this.#changeListener.dispose();
-      }
+  public dispose(): void {
+    this.#diagnosticCollection.dispose();
+    if (this.#codeActionProvider) {
+      this.#codeActionProvider.dispose();
+    }
+    if (this.#changeListener) {
+      this.#changeListener.dispose();
+    }
+    if (this.#configListener) {
+      this.#configListener.dispose();
+    }
+    if (this.#debounceTimer) {
+      clearTimeout(this.#debounceTimer);
+    }
+  }
+
+  /**
+   * Toggle the linter on or off
+   * @returns The new state (true = enabled, false = disabled)
+   */
+  public toggle(): boolean {
+    this.#enabled = !this.#enabled;
+    if (!this.#enabled) {
+      // Clear all diagnostics and pending lint operations when disabled
+      this.#diagnosticCollection.clear();
       if (this.#debounceTimer) {
         clearTimeout(this.#debounceTimer);
       }
     }
-  
-    /**
-     * Toggle the linter on or off
-     * @returns The new state (true = enabled, false = disabled)
-     */
-    public toggle(): boolean {
-      this.#enabled = !this.#enabled;
-      if (!this.#enabled) {
-        // Clear all diagnostics and pending lint operations when disabled
-        this.#diagnosticCollection.clear();
-        if (this.#debounceTimer) {
-          clearTimeout(this.#debounceTimer);
-        }
-      }
-  
-      return this.#enabled;
-    }
-  
-    /**
-     * Check if the linter is currently enabled
-     */
-    public isEnabled(): boolean {
-      return this.#enabled;
-    }
+
+    return this.#enabled;
+  }
+
+  /**
+   * Check if the linter is currently enabled
+   */
+  public isEnabled(): boolean {
+    return this.#enabled;
+  }
 
   /**
    * Get ESLint results with auto-fix

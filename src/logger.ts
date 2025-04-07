@@ -81,10 +81,12 @@ export class Logger {
     const reactVersion = config.get("reactVersion", "18.2.0");
     const debounceDelay = config.get("debounceDelay", 500);
     const ignorePatterns = config.get<string[]>("ignorePatterns", []);
+    const enabledPlugins = config.get<string[]>("plugins", ["react", "react-hooks", "import"]);
     
     this.info(`React version: ${reactVersion}`, true);
     this.info(`Debounce delay: ${debounceDelay}ms`, true);
     this.info(`Ignore patterns: ${ignorePatterns.length > 0 ? `[${ignorePatterns.join(", ")}]` : "none"}`, true);
+    this.info(`Enabled plugins: [${enabledPlugins.join(", ")}]\n`, true);
 
     // Show diagnostic information
     this.info("--- FreeLint Diagnostics Summary ---", true);

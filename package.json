@@ -54,17 +54,21 @@
     ],
     "configuration": {
       "properties": {
-        "freelint.enabledPlugins": {
+        "freelint.plugins": {
+          "order": 1,
           "type": "array",
-          "description": "Enable or disable specific ESLint plugins.",
-          "default": [
-            "react",
-            "react-hooks",
-            "import"
-          ],
+          "markdownDescription": "Select which ESLint plugins to enable.",
           "items": {
-            "type": "string"
-          }
+            "type": "string",
+            "enum": ["react", "react-hooks", "import"],
+            "enumDescriptions": [
+              "React plugin for JSX and React-specific rules (enabled by default)",
+              "React Hooks plugin for hooks-specific rules (enabled by default)",
+              "Import plugin for import/export rules (enabled by default)"
+            ]
+          },
+          "uniqueItems": true,
+          "default": ["react", "react-hooks", "import"]
         },
         "freelint.reactVersion": {
           "type": "string",
