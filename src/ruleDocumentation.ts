@@ -5,7 +5,7 @@
 /**
  * Base URLs for documentation of different ESLint plugins
  */
-const DOCUMENTATION_BASE_URLS: Record<string, string> = {
+const DOCUMENTATION_BASE_URLS: Record<string, string> = Object.freeze({
   // Core ESLint rules
   'eslint': 'https://eslint.org/docs/rules/',
   
@@ -17,16 +17,16 @@ const DOCUMENTATION_BASE_URLS: Record<string, string> = {
   
   // Import plugin rules
   'import': 'https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/',
-};
+});
 
 /**
  * Special cases for rules that don't follow the standard documentation pattern
  */
-const SPECIAL_CASE_URLS: Record<string, string> = {
+const SPECIAL_CASE_URLS: Record<string, string> = Object.freeze({
   // React Hooks rules have a different URL pattern
   'react-hooks/rules-of-hooks': 'https://github.com/facebook/react/blob/main/packages/eslint-plugin-react-hooks/README.md#rules-of-hooks',
   'react-hooks/exhaustive-deps': 'https://github.com/facebook/react/blob/main/packages/eslint-plugin-react-hooks/README.md#exhaustive-deps',
-};
+});
 
 /**
  * Generate a documentation URL for an ESLint rule
