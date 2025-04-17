@@ -1,7 +1,7 @@
-import * as path from "path";
-import * as vscode from "vscode";
-import { Linter } from "./linter";
-import { logger } from "./logger";
+import * as path from 'path';
+import * as vscode from 'vscode';
+import { Linter } from './linter';
+import { logger } from './logger';
 
 /**
  * Class to handle creation of test files for demonstrating linting capabilities.
@@ -17,13 +17,8 @@ export class TestCommands {
    * Create a react test file with various lint issues.
    * @param workspaceFolder The workspace folder to create the file in
    */
-  public async createReactTestFile(
-    workspaceFolder: vscode.WorkspaceFolder
-  ): Promise<void> {
-    const testFilePath = path.join(
-      workspaceFolder.uri.fsPath,
-      "test-react.jsx"
-    );
+  public async createReactTestFile(workspaceFolder: vscode.WorkspaceFolder): Promise<void> {
+    const testFilePath = path.join(workspaceFolder.uri.fsPath, 'test-react.jsx');
     const testContent = `
 import React, { useState, useEffect, useCallback } from 'react';
 
@@ -70,10 +65,7 @@ export default HooksComponent;
       const uri = vscode.Uri.file(testFilePath);
 
       // Write the test content to the file
-      await vscode.workspace.fs.writeFile(
-        uri,
-        Buffer.from(testContent, "utf8")
-      );
+      await vscode.workspace.fs.writeFile(uri, Buffer.from(testContent, 'utf8'));
 
       // Open the file
       const document = await vscode.workspace.openTextDocument(uri);
@@ -83,18 +75,13 @@ export default HooksComponent;
       await this.#linter.lintDocument(document);
 
       // Show a message in the output channel
-      logger.info(
-        `Created react test file: ${path.basename(testFilePath)}`,
-        true
-      );
+      logger.info(`Created react test file: ${path.basename(testFilePath)}`, true);
       vscode.window.showInformationMessage(
         "React test file created with lint issues. Check 'FreeLint' output for details."
       );
     } catch (error) {
       logger.error(`Error creating react test file: ${error}`);
-      vscode.window.showErrorMessage(
-        `Failed to create react test file: ${error}`
-      );
+      vscode.window.showErrorMessage(`Failed to create react test file: ${error}`);
     }
   }
 
@@ -102,19 +89,11 @@ export default HooksComponent;
    * Creates a test file with import/export errors to demonstrate eslint-plugin-import rules.
    * @param workspaceFolder The workspace folder to create the file in
    */
-  public async createImportExportTestFile(
-    workspaceFolder: vscode.WorkspaceFolder
-  ): Promise<void> {
-    const testFilePath = path.join(
-      workspaceFolder.uri.fsPath,
-      "import-export-test.js"
-    );
+  public async createImportExportTestFile(workspaceFolder: vscode.WorkspaceFolder): Promise<void> {
+    const testFilePath = path.join(workspaceFolder.uri.fsPath, 'import-export-test.js');
 
     // Create a supporting module file to make some of the errors more realistic
-    const supportingModulePath = path.join(
-      workspaceFolder.uri.fsPath,
-      "some-local-module.js"
-    );
+    const supportingModulePath = path.join(workspaceFolder.uri.fsPath, 'some-local-module.js');
 
     const supportingModuleContent = `
 // A supporting module with some exports
@@ -185,14 +164,11 @@ console.log('This file demonstrates various import/export errors');
       // Write the supporting module content to the file
       await vscode.workspace.fs.writeFile(
         supportingUri,
-        Buffer.from(supportingModuleContent, "utf8")
+        Buffer.from(supportingModuleContent, 'utf8')
       );
 
       // Write the test content to the file
-      await vscode.workspace.fs.writeFile(
-        uri,
-        Buffer.from(testContent, "utf8")
-      );
+      await vscode.workspace.fs.writeFile(uri, Buffer.from(testContent, 'utf8'));
 
       // Open the file
       const document = await vscode.workspace.openTextDocument(uri);
@@ -202,18 +178,13 @@ console.log('This file demonstrates various import/export errors');
       await this.#linter.lintDocument(document);
 
       // Show a message in the output channel
-      logger.info(
-        `Created import/export test file: ${path.basename(testFilePath)}`,
-        true
-      );
+      logger.info(`Created import/export test file: ${path.basename(testFilePath)}`, true);
       vscode.window.showInformationMessage(
         "Import/export test file created with lint issues. Check 'FreeLint' output for details."
       );
     } catch (error) {
       logger.error(`Error creating import/export test file: ${error}`);
-      vscode.window.showErrorMessage(
-        `Failed to create import/export test file: ${error}`
-      );
+      vscode.window.showErrorMessage(`Failed to create import/export test file: ${error}`);
     }
   }
 
@@ -221,13 +192,8 @@ console.log('This file demonstrates various import/export errors');
    * Create a JavaScript test file with various general ESLint errors.
    * @param workspaceFolder The workspace folder to create the file in
    */
-  public async createJavaScriptTestFile(
-    workspaceFolder: vscode.WorkspaceFolder
-  ): Promise<void> {
-    const testFilePath = path.join(
-      workspaceFolder.uri.fsPath,
-      "test-javascript.js"
-    );
+  public async createJavaScriptTestFile(workspaceFolder: vscode.WorkspaceFolder): Promise<void> {
+    const testFilePath = path.join(workspaceFolder.uri.fsPath, 'test-javascript.js');
     const testContent = `
 // Missing semicolons
 const missingTerminator = 5
@@ -298,10 +264,7 @@ if (true) {
       const uri = vscode.Uri.file(testFilePath);
 
       // Write the test content to the file
-      await vscode.workspace.fs.writeFile(
-        uri,
-        Buffer.from(testContent, "utf8")
-      );
+      await vscode.workspace.fs.writeFile(uri, Buffer.from(testContent, 'utf8'));
 
       // Open the file
       const document = await vscode.workspace.openTextDocument(uri);
@@ -311,18 +274,13 @@ if (true) {
       await this.#linter.lintDocument(document);
 
       // Show a message in the output channel
-      logger.info(
-        `Created JavaScript test file: ${path.basename(testFilePath)}`,
-        true
-      );
+      logger.info(`Created JavaScript test file: ${path.basename(testFilePath)}`, true);
       vscode.window.showInformationMessage(
         "JavaScript test file created with lint issues. Check 'FreeLint' output for details."
       );
     } catch (error) {
       logger.error(`Error creating JavaScript test file: ${error}`);
-      vscode.window.showErrorMessage(
-        `Failed to create JavaScript test file: ${error}`
-      );
+      vscode.window.showErrorMessage(`Failed to create JavaScript test file: ${error}`);
     }
   }
 }
