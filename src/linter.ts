@@ -4,6 +4,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 
 import { logger } from "./logger";
+import { getRuleDocumentationUrl } from "./ruleDocumentation";
 
 interface ESLintFix {
   range: [number, number];
@@ -272,6 +273,16 @@ export class Linter {
 
             if (message.ruleId) {
               diagnostic.source = `freelint(${message.ruleId})`;
+              
+              // Add rule documentation URL to the diagnostic message if available
+              const docUrl = getRuleDocumentationUrl(message.ruleId);
+              if (docUrl) {
+                // Use the code property to store the documentation URL
+                diagnostic.code = {
+                  value: message.ruleId,
+                  target: vscode.Uri.parse(docUrl)
+                };
+              }
             }
 
             if (message.severity === 2) {

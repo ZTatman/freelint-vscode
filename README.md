@@ -10,6 +10,7 @@ FreeLint provides ESLint functionality without requiring local installation of E
 - Status bar indicator to toggle linting on/off
 - Set the React version for React linting rules
 - Includes test file generators to demonstrate linting capabilities
+- **NEW**: Clickable rule IDs in error messages that link to documentation
 
 ## Commands
 
@@ -30,6 +31,16 @@ This extension contributes the following settings:
 
 - `freelint.enabledPlugins`: Array of ESLint plugins to enable
 - `freelint.reactVersion`: React version to use for ESLint React rules
+
+## Documentation Links
+
+FreeLint now provides clickable rule IDs in error messages. When you hover over a linting error or warning, you'll see the rule ID (e.g., `no-unused-vars` or `react/jsx-key`). Clicking on this rule ID will open the relevant documentation in your browser, helping you understand the rule and how to fix the issue.
+
+Documentation links are supported for:
+- Core ESLint rules
+- React plugin rules
+- React Hooks plugin rules
+- Import/Export plugin rules
 
 ## Configuration
 

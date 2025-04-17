@@ -2,7 +2,7 @@
   "name": "freelint",
   "displayName": "Freelint",
   "description": "ESLint functionality without requiring local installation",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "Zach Tatman",
   "engines": {
     "vscode": "^1.80.0"
