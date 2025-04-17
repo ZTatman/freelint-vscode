@@ -2,6 +2,13 @@
 
 All notable changes to the "freelint" extension will be documented in this file.
 
+## [0.0.6] - 2025-04-17
+
+### Added
+- Added rule documentation links in error messages - clicking on rule IDs now opens the relevant documentation
+- Created utility module for generating ESLint rule documentation URLs
+- Support for documentation links for core ESLint, React, React Hooks, and Import plugin rules
+
 ## [0.0.5] - 2023-05-20
 
 ### Added
