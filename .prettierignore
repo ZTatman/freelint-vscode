@@ -1,0 +1,16 @@
+# Build artifacts
+dist/
+out/
+node_modules/
+
+# Coverage reports
+coverage/
+
+# Logs
+*.log
+
+# VS Code specific files
+.vscode/
+
+# Other generated files
+*.min.js
