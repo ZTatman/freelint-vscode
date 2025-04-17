@@ -1,15 +1,16 @@
 {
   "root": true,
   "parser": "@babel/eslint-parser",
-  "plugins": ["react"],
-  "extends": ["eslint:recommended", "plugin:react/recommended"],
+  "plugins": ["react", "prettier"],
+  "extends": ["eslint:recommended", "plugin:react/recommended", "prettier"],
   "env": {
     "node": true,
     "browser": true,
     "es2022": true
   },
   "rules": {
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "prettier/prettier": "error"
   },
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -17,9 +18,12 @@
     "requireConfigFile": false,
     "babelOptions": {
       "presets": [
-        ["@babel/preset-react", {
-          "runtime": "automatic"
-        }]
+        [
+          "@babel/preset-react",
+          {
+            "runtime": "automatic"
+          }
+        ]
       ]
     }
   },

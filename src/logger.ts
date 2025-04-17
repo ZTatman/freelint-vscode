@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
 
 /**
  * Logger class to handle all output channel and debug logging functionality.
@@ -7,8 +7,8 @@ export class Logger {
   #outputChannel: vscode.OutputChannel;
 
   constructor() {
-    this.#outputChannel = vscode.window.createOutputChannel("FreeLint");
-    this.info("FreeLint extension activated");
+    this.#outputChannel = vscode.window.createOutputChannel('FreeLint');
+    this.info('FreeLint extension activated');
   }
 
   /**
@@ -48,11 +48,7 @@ export class Logger {
    * @param errorCount Number of errors found
    * @param warningCount Number of warnings found
    */
-  public logLintResults(
-    fileName: string,
-    errorCount: number,
-    warningCount: number
-  ): void {
+  public logLintResults(fileName: string, errorCount: number, warningCount: number): void {
     const message = `Linted ${fileName}: ${errorCount} errors, ${warningCount} warnings\n`;
     if (errorCount > 0 || warningCount > 0) {
       this.info(message);
@@ -73,23 +69,26 @@ export class Logger {
     eslintVersion: string
   ): void {
     // Show configuration information
-    this.info("--- FreeLint Configuration ---", true);
+    this.info('--- FreeLint Configuration ---', true);
     this.info(`ESLint version: ${eslintVersion}`, true);
-    
+
     // Get and log other configuration settings
-    const config = vscode.workspace.getConfiguration("freelint");
-    const reactVersion = config.get("reactVersion", "18.2.0");
-    const debounceDelay = config.get("debounceDelay", 500);
-    const ignorePatterns = config.get<string[]>("ignorePatterns", []);
-    const enabledPlugins = config.get<string[]>("plugins", ["react", "react-hooks", "import"]);
-    
+    const config = vscode.workspace.getConfiguration('freelint');
+    const reactVersion = config.get('reactVersion', '18.2.0');
+    const debounceDelay = config.get('debounceDelay', 500);
+    const ignorePatterns = config.get<string[]>('ignorePatterns', []);
+    const enabledPlugins = config.get<string[]>('plugins', ['react', 'react-hooks', 'import']);
+
     this.info(`React version: ${reactVersion}`, true);
     this.info(`Debounce delay: ${debounceDelay}ms`, true);
-    this.info(`Ignore patterns: ${ignorePatterns.length > 0 ? `[${ignorePatterns.join(", ")}]` : "none"}`, true);
-    this.info(`Enabled plugins: [${enabledPlugins.join(", ")}]\n`, true);
+    this.info(
+      `Ignore patterns: ${ignorePatterns.length > 0 ? `[${ignorePatterns.join(', ')}]` : 'none'}`,
+      true
+    );
+    this.info(`Enabled plugins: [${enabledPlugins.join(', ')}]\n`, true);
 
     // Show diagnostic information
-    this.info("--- FreeLint Diagnostics Summary ---", true);
+    this.info('--- FreeLint Diagnostics Summary ---', true);
 
     // Get our own diagnostics
     const freelintDiagnostics = diagnosticCollection.get(uri) || [];
@@ -98,7 +97,7 @@ export class Logger {
     // Group and log issues by rule with line numbers
     const ruleGroups: Record<string, vscode.Diagnostic[]> = {};
     for (const diag of freelintDiagnostics) {
-      const ruleName = diag.source || "unknown";
+      const ruleName = diag.source || 'unknown';
       if (!ruleGroups[ruleName]) {
         ruleGroups[ruleName] = [];
       }
@@ -135,7 +134,7 @@ export class Logger {
   #logOtherLinterIssues(uri: vscode.Uri): void {
     const allDiagnostics = vscode.languages.getDiagnostics(uri);
     const otherLinterDiagnostics = allDiagnostics.filter(d => !d.source?.startsWith('freelint'));
-    
+
     if (otherLinterDiagnostics.length > 0) {
       // Group diagnostics by source (linter name)
       const linterGroups: Record<string, vscode.Diagnostic[]> = {};
