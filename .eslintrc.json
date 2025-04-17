@@ -2,11 +2,7 @@
   "root": true,
   "parser": "@babel/eslint-parser",
   "plugins": ["react", "prettier"],
-  "extends": [
-    "eslint:recommended", 
-    "plugin:react/recommended",
-    "prettier"
-  ],
+  "extends": ["eslint:recommended", "plugin:react/recommended", "prettier"],
   "env": {
     "node": true,
     "browser": true,
@@ -22,9 +18,12 @@
     "requireConfigFile": false,
     "babelOptions": {
       "presets": [
-        ["@babel/preset-react", {
-          "runtime": "automatic"
-        }]
+        [
+          "@babel/preset-react",
+          {
+            "runtime": "automatic"
+          }
+        ]
       ]
     }
   },

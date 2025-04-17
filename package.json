@@ -114,8 +114,8 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "lint:fix": "eslint src --ext ts --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\" \"**/*.json\" \"*.js\" \"*.config.js\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\" \"**/*.json\" \"*.js\" \"*.config.js\"",
     "test": "node ./out/test/runTest.js"
   },
   "dependencies": {
